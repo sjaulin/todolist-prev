@@ -1,0 +1,46 @@
+version: "3"
+services:
+  mysql:
+    image: mysql:5
+    environment:
+      TZ: "Europe/Rome"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - "3306:3306"
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links:
+      - mysql:mysql
+    ports:
+      - 8001:80
+    environment:
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: null
+      PMA_HOST: mysql
+  www:
+    build:
+      context: .
+      dockerfile: Dockerfile-www
+    ports:
+      - "80:80"
+    volumes:
+      - ./web:/var/www/html:z
+      - ./vendor:/var/www/vendor
+      - ./src:/var/www/src
+      - ./app:/var/www/app
+      - ./var:/var/www/var
+      - ./bin:/var/www/bin
+    links:
+      - "mysql"
+
+  blackfire:
+    image: blackfire/blackfire
+    container_name: blackfire_todolist
+    ports: ["8307"]
+    environment:
+      # Exposes BLACKFIRE_* environment variables from the host
+      BLACKFIRE_SERVER_ID: $BLACKFIRE_SERVER_ID
+      BLACKFIRE_SERVER_TOKEN: $BLACKFIRE_SERVER_TOKEN
+      BLACKFIRE_CLIENT_ID: $BLACKFIRE_CLIENT_ID
+      BLACKFIRE_CLIENT_TOKEN: $BLACKFIRE_CLIENT_TOKEN
